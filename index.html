@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPOO — Interactive Poster</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ─── Top Navigation ─── -->
+    <nav class="top-nav">
+        <a href="index.html" class="logo">
+            <span class="accent">EXPOO</span> Interactive Poster
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="poster.html">View Poster</a>
+            <a href="editor.html">Editor</a>
+        </div>
+    </nav>
+
+    <!-- ─── Hero Section ─── -->
+    <section class="hero container">
+        <h1>Explore the <span class="accent">Poster</span></h1>
+        <p>Click anywhere on the interactive poster to discover videos, information, and links hidden in every detail.</p>
+
+        <a href="poster.html">
+            <div class="poster-preview">
+                <picture>
+                    <source srcset="assets/images/poster.webp" type="image/webp">
+                    <source srcset="assets/images/poster.jpg" type="image/jpeg">
+                    <img src="assets/images/poster.jpg" alt="Poster Preview" loading="lazy">
+                </picture>
+            </div>
+        </a>
+
+        <div style="margin-top:30px">
+            <a href="poster.html" class="btn btn-primary" style="font-size:1rem;padding:12px 32px;">
+                ▶ Open Interactive Poster
+            </a>
+        </div>
+
+        <!-- ─── Feature Cards ─── -->
+        <div class="features">
+            <div class="card">
+                <h3>🖱️ Click &amp; Discover</h3>
+                <p>Every region of the poster is interactive. Click to reveal pop-up information, videos, or follow links.</p>
+            </div>
+            <div class="card">
+                <h3>🎬 Watch Videos</h3>
+                <p>Some areas open an embedded video player right inside the page — no navigation needed.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <footer style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:0.8rem;">
+        EXPOO Interactive Poster System
+    </footer>
+
+</body>
+</html>

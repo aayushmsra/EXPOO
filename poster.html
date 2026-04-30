@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPOO — View Poster</title>
+    <link rel="preload" as="image" type="image/webp" href="assets/images/poster.webp">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; margin: 0; }
+
+        /* ── Nav & Toolbar: hidden by default, slide in when panel open ── */
+        .top-nav {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.35s ease, opacity 0.3s ease;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 700;
+        }
+        .poster-toolbar {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.35s ease, opacity 0.3s ease;
+            position: fixed;
+            top: 56px; left: 0; right: 0;
+            z-index: 699;
+        }
+        body.panel-open .top-nav,
+        body.panel-open .poster-toolbar {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Poster fills the whole screen ── */
+        .poster-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: auto;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 1;
+        }
+        body.panel-open .poster-viewport {
+            top: 104px; /* nav 56px + toolbar ~48px */
+        }
+
+        .poster-wrapper {
+            position: relative;
+            display: inline-block;
+            transform-origin: top center;
+            flex-shrink: 0;
+        }
+
+        .poster-wrapper img.poster-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .zoom-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 48px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Floating "View More" button ── */
+        .fab-panel-toggle {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            z-index: 800;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            backdrop-filter: blur(8px);
+        }
+        .fab-panel-toggle:hover {
+            background: rgba(0,0,0,0.75);
+            box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+        }
+        body.panel-open .fab-panel-toggle {
+            top: auto;
+            bottom: 12px;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── Top Navigation (hidden by default) ─── -->
+    <nav class="top-nav">
+        <a href="index.html" class="logo">
+            <span class="accent">EXPOO</span> Interactive Poster
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="poster.html" class="active">View Poster</a>
+            <a href="editor.html">Editor</a>
+        </div>
+    </nav>
+
+    <!-- ─── Poster Toolbar (hidden by default) ─── -->
+    <div class="poster-toolbar">
+        <button class="btn btn-sm active" id="btn-hotspots" onclick="toggleHotspots()">
+            🔵 Hotspots
+        </button>
+        <div class="sep"></div>
+        <button class="btn btn-sm" onclick="setZoom(zoomLevel - 10)">➖</button>
+        <span class="zoom-label" id="zoom-label">Fit</span>
+        <button class="btn btn-sm" onclick="setZoom(zoomLevel + 10)">➕</button>
+        <button class="btn btn-sm" onclick="setZoom(100)">1:1</button>
+        <button class="btn btn-sm" onclick="setZoom(0)">Fit</button>
+        <div class="sep"></div>
+        <button class="btn btn-sm" onclick="document.querySelector('.poster-viewport').scrollTo({top:0,behavior:'smooth'})">
+            ⬆ Top
+        </button>
+        <span class="info" id="poster-info">Loading poster…</span>
+    </div>
+
+    <!-- ─── Poster Viewport (full screen by default) ─── -->
+    <div class="poster-viewport" id="poster-viewport">
+        <div class="poster-wrapper" id="poster-wrapper">
+            <img class="poster-img poster-placeholder" id="poster-placeholder"
+                 src="assets/images/poster_placeholder.webp"
+                 alt="" aria-hidden="true"
+                 style="filter:blur(12px);transform:scale(1.04);position:absolute;inset:0;width:100%;height:100%;z-index:1;transition:opacity 0.4s;"
+                 draggable="false">
+            <picture>
+                <source srcset="assets/images/poster.webp" type="image/webp">
+                <source srcset="assets/images/poster.jpg" type="image/jpeg">
+                <img class="poster-img" id="poster-img"
+                     src="assets/images/poster.jpg"
+                     alt="Interactive Poster"
+                     draggable="false">
+            </picture>
+        </div>
+    </div>
+
+    <!-- ─── Floating toggle button ─── -->
+    <button class="fab-panel-toggle" id="fab-toggle" onclick="togglePanel()">
+        <span id="fab-icon">☰</span>
+        <span id="fab-text">View More</span>
+    </button>
+
+    <!-- ─── Scripts ─── -->
+    <script src="content/regions.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let hotspotsVisible = true;
+        let zoomLevel = 0;
+        let panelOpen = false;
+
+        const wrapper  = document.getElementById('poster-wrapper');
+        const viewport = document.getElementById('poster-viewport');
+        const img      = document.getElementById('poster-img');
+
+        function onImageReady() {
+            const ph = document.getElementById('poster-placeholder');
+            if (ph) { ph.style.opacity = '0'; setTimeout(() => ph.remove(), 500); }
+
+            App.renderHotspots(wrapper, window.REGIONS || []);
+            setZoom(0);
+            document.getElementById('poster-info').textContent =
+                `${(window.REGIONS || []).length} clickable regions · ${img.naturalWidth}×${img.naturalHeight}px`;
+        }
+
+        if (img.complete && img.naturalWidth) {
+            onImageReady();
+        } else {
+            img.addEventListener('load', onImageReady, { once: true });
+        }
+
+        img.addEventListener('error', () => {
+            document.getElementById('poster-info').textContent = 'Failed to load poster image';
+        });
+
+        function setZoom(level) {
+            if (level <= 0) {
+                zoomLevel = 0;
+                wrapper.style.width = '100%';
+                document.getElementById('zoom-label').textContent = 'Fit';
+            } else {
+                zoomLevel = Math.max(20, Math.min(300, level));
+                const pxWidth = img.naturalWidth * (zoomLevel / 100);
+                wrapper.style.width = pxWidth + 'px';
+                document.getElementById('zoom-label').textContent = zoomLevel + '%';
+            }
+        }
+
+        viewport.addEventListener('wheel', (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const current = zoomLevel || Math.round(wrapper.offsetWidth / img.naturalWidth * 100);
+            const delta = e.deltaY < 0 ? 10 : -10;
+            setZoom(current + delta);
+        }, { passive: false });
+
+        function toggleHotspots() {
+            hotspotsVisible = !hotspotsVisible;
+            const btn = document.getElementById('btn-hotspots');
+            wrapper.querySelectorAll('.hotspot').forEach(el => {
+                el.style.display = hotspotsVisible ? '' : 'none';
+            });
+            btn.classList.toggle('active', hotspotsVisible);
+            btn.textContent = hotspotsVisible ? '🔵 Hotspots' : '⚪ Hotspots';
+        }
+
+        function togglePanel() {
+            panelOpen = !panelOpen;
+            document.body.classList.toggle('panel-open', panelOpen);
+            document.getElementById('fab-icon').textContent = panelOpen ? '✕' : '☰';
+            document.getElementById('fab-text').textContent = panelOpen ? 'Close' : 'View More';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && panelOpen) togglePanel();
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Node modules (used only for localtunnel, not needed for deploy)
+node_modules/
+package-lock.json
+package.json
+
+# Server & local-only files
+server.py
+tunnel_*.txt
+*.log
+bore_log.txt
+optimize.py
+
+# Original high-res SVG/PNG source (not needed for viewing)
+assets/images/IMG_6074.svg
+assets/images/IMG_6074.PNG
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini

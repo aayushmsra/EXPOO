@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPOO — Region Editor</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .editor-main { display: flex; flex: 1; overflow: hidden; }
+        .poster-viewport { flex: 1; overflow: auto; position: relative; }
+        .poster-viewport.drawing-mode { cursor: crosshair; }
+        .poster-wrapper {
+            position: relative;
+            display: inline-block;
+            min-width: 100%;
+        }
+        .poster-wrapper img.poster-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        /* File Browser */
+        .file-browser {
+            margin-top: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            max-height: 320px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .fb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-alt);
+        }
+        .btn-close-fb {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .btn-close-fb:hover { color: var(--danger); }
+        .fb-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .fb-tab {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .fb-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .fb-file-list {
+            overflow-y: auto;
+            padding: 4px;
+            flex: 1;
+        }
+        .fb-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: background 0.15s;
+        }
+        .fb-file-item:hover {
+            background: rgba(88,166,255,0.1);
+        }
+        .fb-file-item .fb-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+        .fb-file-item .fb-size {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .fb-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 16px 8px;
+        }
+        .fb-empty-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 16px 8px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── Top Navigation ─── -->
+    <nav class="top-nav">
+        <a href="index.html" class="logo">
+            <span class="accent">EXPOO</span> Interactive Poster
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="poster.html">View Poster</a>
+            <a href="editor.html" class="active">Editor</a>
+        </div>
+    </nav>
+
+    <!-- ─── Toolbar ─── -->
+    <div class="poster-toolbar editor-toolbar">
+        <button class="btn btn-sm active" data-mode="select"
+                onclick="Editor.setMode('select')">
+            🖱 Select
+        </button>
+        <button class="btn btn-sm" data-mode="draw"
+                onclick="Editor.setMode('draw')">
+            ✏️ Draw Region
+        </button>
+        <div class="sep"></div>
+        <button class="btn btn-sm" onclick="Editor.exportJSON()">📋 Export JSON</button>
+        <button class="btn btn-sm" onclick="Editor.importJSON()">📥 Import JSON</button>
+        <div class="sep"></div>
+        <button class="btn btn-sm" style="background:var(--green)" onclick="Editor.saveToServer()">🚀 Save to Server</button>
+        <div class="sep"></div>
+        <span class="info" id="editor-status">Loading…</span>
+    </div>
+
+    <!-- ─── Main Area ─── -->
+    <div class="editor-main">
+
+        <!-- Poster viewport -->
+        <div class="poster-viewport" id="editor-viewport">
+            <div class="poster-wrapper" id="editor-wrapper">
+                <picture>
+                    <source srcset="assets/images/poster.webp" type="image/webp">
+                    <source srcset="assets/images/poster.jpg" type="image/jpeg">
+                    <img class="poster-img" id="editor-img"
+                         src="assets/images/poster.jpg"
+                         alt="Poster"
+                         draggable="false">
+                </picture>
+                <!-- hotspots rendered on top by JS -->
+            </div>
+        </div>
+
+        <!-- Right sidebar (edit form) -->
+        <aside class="editor-sidebar" id="editor-sidebar">
+            <h3>Edit Region</h3>
+
+            <div class="form-group">
+                <label for="ef-label">Label (tooltip on hover)</label>
+                <input type="text" id="ef-label" placeholder="e.g. Introduction Video">
+            </div>
+
+            <div class="form-group">
+                <label for="ef-type">Action Type</label>
+                <select id="ef-type" onchange="Editor.toggleFieldsByType(this.value)">
+                    <option value="popup">Text Popup</option>
+                    <option value="video">Video Player</option>
+                    <option value="link">External Link</option>
+                    <option value="image">Image Lightbox</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="ef-group-title">
+                <label for="ef-title">Popup / Video Title</label>
+                <input type="text" id="ef-title" placeholder="e.g. About This Section">
+            </div>
+
+            <div class="form-group" id="ef-group-body">
+                <label for="ef-body">Popup Content (HTML allowed)</label>
+                <textarea id="ef-body" rows="5" placeholder="<p>Your content here...</p>"></textarea>
+            </div>
+
+            <div class="form-group" id="ef-group-url" style="display:none">
+                <label for="ef-url">URL / Source Path</label>
+                <input type="text" id="ef-url" placeholder="https://... or assets/videos/clip.mp4">
+                <button class="btn btn-sm" style="margin-top:6px;width:100%"
+                        onclick="Editor.openFileBrowser()">📁 Browse Local Files</button>
+                <!-- File browser dropdown -->
+                <div id="file-browser" class="file-browser" style="display:none">
+                    <div class="fb-header">
+                        <span>📁 Local Files</span>
+                        <button class="btn-close-fb" onclick="Editor.closeFileBrowser()">✕</button>
+                    </div>
+                    <div class="fb-tabs">
+                        <button class="fb-tab active" data-folder="images" onclick="Editor.switchFileTab('images')">🖼 Images</button>
+                        <button class="fb-tab" data-folder="videos" onclick="Editor.switchFileTab('videos')">🎬 Videos</button>
+                    </div>
+                    <div id="fb-file-list" class="fb-file-list">
+                        <p class="fb-hint">Loading…</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" id="ef-group-target" style="display:none">
+                <label for="ef-target">Link Target</label>
+                <select id="ef-target">
+                    <option value="_blank">New Tab (_blank)</option>
+                    <option value="_self">Same Tab (_self)</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="Editor.saveForm()">💾 Save Region</button>
+                <button class="btn btn-danger" onclick="Editor.deleteRegion()">🗑 Delete</button>
+            </div>
+
+            <hr style="border-color:var(--border);margin:24px 0 16px;">
+
+            <div class="form-actions" style="margin-bottom:16px">
+                <button class="btn btn-primary" style="width:100%;background:var(--green);font-size:0.95rem;"
+                        onclick="Editor.saveToServer()">
+                    🚀 Save All to Server
+                </button>
+            </div>
+
+            <h3>All Regions <span id="region-count" style="color:var(--text-muted);font-size:0.82rem;font-weight:400;"></span></h3>
+            <div id="region-list">
+                <!-- Rendered by JS -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- ─── Scripts ─── -->
+    <script src="content/regions.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/editor.js"></script>
+    <script>Editor.init();</script>
+
+</body>
+</html>
