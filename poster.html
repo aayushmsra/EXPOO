@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EXPOO — View Poster</title>
     <link rel="preload" as="image" type="image/webp" href="assets/images/poster.webp">
     <link rel="stylesheet" href="css/styles.css">
@@ -104,6 +104,22 @@
             background: rgba(0,0,0,0.55);
             color: #fff;
             border: none;
+        }
+
+        /* Phone adjustments */
+        @media (max-width: 480px) {
+            .poster-toolbar {
+                top: 48px; /* shorter nav on phone */
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            body.panel-open .poster-viewport {
+                top: 90px;
+            }
+            .fab-panel-toggle {
+                padding: 5px 12px;
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
@@ -216,6 +232,48 @@
             const delta = e.deltaY < 0 ? 10 : -10;
             setZoom(current + delta);
         }, { passive: false });
+
+        // ─── Touch: pinch-to-zoom & pan ─────────────────
+        let touchState = { dist: 0, startZoom: 0, panning: false, startX: 0, startY: 0, scrollX: 0, scrollY: 0 };
+
+        function getTouchDist(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                touchState.dist = getTouchDist(e.touches);
+                touchState.startZoom = zoomLevel || Math.round(wrapper.offsetWidth / img.naturalWidth * 100);
+            } else if (e.touches.length === 1 && zoomLevel > 0) {
+                touchState.panning = true;
+                touchState.startX = e.touches[0].clientX;
+                touchState.startY = e.touches[0].clientY;
+                touchState.scrollX = viewport.scrollLeft;
+                touchState.scrollY = viewport.scrollTop;
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const newDist = getTouchDist(e.touches);
+                const scale = newDist / touchState.dist;
+                const newZoom = Math.round(touchState.startZoom * scale);
+                setZoom(newZoom);
+            } else if (e.touches.length === 1 && touchState.panning && zoomLevel > 0) {
+                const dx = touchState.startX - e.touches[0].clientX;
+                const dy = touchState.startY - e.touches[0].clientY;
+                viewport.scrollLeft = touchState.scrollX + dx;
+                viewport.scrollTop = touchState.scrollY + dy;
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', () => {
+            touchState.panning = false;
+        });
 
         function toggleHotspots() {
             hotspotsVisible = !hotspotsVisible;

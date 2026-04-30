@@ -312,6 +312,51 @@ const App = (() => {
         };
         container.addEventListener('mouseup', stopPan);
         container.addEventListener('mouseleave', stopPan);
+
+        // ── Touch: pinch-to-zoom & pan ──
+        let touchData = { dist: 0, startScale: 1, startPanX: 0, startPanY: 0, midX: 0, midY: 0, singleStart: null };
+
+        function getTouchDist(t) {
+            return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+        }
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                touchData.dist = getTouchDist(e.touches);
+                touchData.startScale = zoomScale;
+                touchData.startPanX = panX;
+                touchData.startPanY = panY;
+                const rect = container.getBoundingClientRect();
+                touchData.midX = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+                touchData.midY = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+            } else if (e.touches.length === 1) {
+                touchData.singleStart = { x: e.touches[0].clientX - panX, y: e.touches[0].clientY - panY };
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const newDist = getTouchDist(e.touches);
+                const scale = newDist / touchData.dist;
+                const newScale = Math.max(0.1, Math.min(10, touchData.startScale * scale));
+                const ratio = newScale / touchData.startScale;
+                panX = touchData.midX - (touchData.midX - touchData.startPanX) * ratio;
+                panY = touchData.midY - (touchData.midY - touchData.startPanY) * ratio;
+                zoomScale = newScale;
+                applyZoomTransform();
+            } else if (e.touches.length === 1 && touchData.singleStart) {
+                e.preventDefault();
+                panX = e.touches[0].clientX - touchData.singleStart.x;
+                panY = e.touches[0].clientY - touchData.singleStart.y;
+                applyZoomTransform();
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', () => {
+            touchData.singleStart = null;
+        });
     }
 
     function applyZoomTransform() {

@@ -115,6 +115,29 @@
             padding: 16px 8px;
             line-height: 1.5;
         }
+
+        /* Mobile: stack editor vertically */
+        @media (max-width: 768px) {
+            .editor-main { flex-direction: column; }
+            .poster-viewport { min-height: 40vh; }
+            .editor-sidebar {
+                width: 100% !important;
+                min-width: 100% !important;
+                max-height: 45vh;
+                border-left: none !important;
+                border-top: 1px solid var(--border);
+                overflow-y: auto;
+            }
+        }
+        @media (max-width: 480px) {
+            .editor-toolbar {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .editor-toolbar .info { display: none; }
+            .editor-sidebar { padding: 12px; }
+        }
     </style>
 </head>
 <body>
