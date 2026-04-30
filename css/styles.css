@@ -429,31 +429,6 @@ img, svg {
     z-index: 10;
 }
 
-/* Corner brackets */
-.hotspot::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    --bracket-size: 18%;
-    --bracket-thickness: 2px;
-    --bracket-color: rgba(88, 166, 255, 0.7);
-    background:
-        /* top-left corner */
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 0 0 / var(--bracket-size) var(--bracket-thickness) no-repeat,
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 0 0 / var(--bracket-thickness) var(--bracket-size) no-repeat,
-        /* top-right corner */
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 100% 0 / var(--bracket-size) var(--bracket-thickness) no-repeat,
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 100% 0 / var(--bracket-thickness) var(--bracket-size) no-repeat,
-        /* bottom-left corner */
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 0 100% / var(--bracket-size) var(--bracket-thickness) no-repeat,
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 0 100% / var(--bracket-thickness) var(--bracket-size) no-repeat,
-        /* bottom-right corner */
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 100% 100% / var(--bracket-size) var(--bracket-thickness) no-repeat,
-        linear-gradient(var(--bracket-color), var(--bracket-color)) 100% 100% / var(--bracket-thickness) var(--bracket-size) no-repeat;
-    transition: all 0.3s ease;
-}
-
 .hotspot::after {
     content: attr(data-label);
     position: absolute;
@@ -471,13 +446,6 @@ img, svg {
     transition: opacity 0.25s ease;
 }
 
-.hotspot:hover::before {
-    --bracket-color: rgba(88, 166, 255, 1);
-    --bracket-thickness: 3px;
-    --bracket-size: 30%;
-    filter: drop-shadow(0 0 6px rgba(88, 166, 255, 0.5));
-}
-
 .hotspot:hover {
     background: rgba(88, 166, 255, 0.08);
 }
@@ -492,17 +460,16 @@ img, svg {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
+    width: 14px;
+    height: 14px;
     background: var(--accent);
     border-radius: 50%;
     animation: pulse 2s ease-in-out infinite;
-    opacity: 0.8;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.5); }
-    50%      { box-shadow: 0 0 0 12px rgba(88, 166, 255, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+    50%      { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
 }
 
 /* Drawing overlay */
