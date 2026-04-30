@@ -197,7 +197,18 @@
             if (ph) { ph.style.opacity = '0'; setTimeout(() => ph.remove(), 500); }
 
             App.renderHotspots(wrapper, window.REGIONS || []);
-            setZoom(0);
+
+            // On mobile portrait, start zoomed to fill screen height
+            const isMobilePortrait = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+            if (isMobilePortrait) {
+                const fillHeightZoom = Math.round((window.innerHeight / img.naturalHeight) * 100);
+                setZoom(Math.max(fillHeightZoom, 40));
+                // Scroll to left-center
+                setTimeout(() => viewport.scrollTo({ left: 0, top: 0 }), 50);
+            } else {
+                setZoom(0);
+            }
+
             document.getElementById('poster-info').textContent =
                 `${(window.REGIONS || []).length} clickable regions · ${img.naturalWidth}×${img.naturalHeight}px`;
         }

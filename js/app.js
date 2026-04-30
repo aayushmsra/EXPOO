@@ -50,7 +50,13 @@ const App = (() => {
         modalBackdrop.querySelector('.modal-title').textContent = title;
         modalBackdrop.querySelector('.modal-body').innerHTML = bodyHTML;
         const modal = modalBackdrop.querySelector('.modal');
-        if (options.wide) {
+        const isMobile = window.innerWidth <= 480;
+        if (isMobile) {
+            // Full-screen on mobile
+            modal.style.maxWidth = '100vw';
+            modal.style.width = '100vw';
+            modal.style.overflowY = 'hidden';
+        } else if (options.wide) {
             modal.style.maxWidth = '90vw';
             modal.style.width = '90vw';
             modal.style.overflowY = 'hidden';
@@ -175,6 +181,18 @@ const App = (() => {
             return;
         }
 
+        // On mobile: simple full-width video player (no zoom container)
+        const isMobile = window.innerWidth <= 480;
+        if (isMobile) {
+            const html = `
+                <video controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:10px;background:#000;">
+                    <source src="${src}">
+                </video>
+            `;
+            openModal(title, html);
+            return;
+        }
+
         const html = `
             <div class="zoom-viewer">
                 <div class="zoom-toolbar">
@@ -185,7 +203,7 @@ const App = (() => {
                     <button class="btn btn-sm" onclick="App.zoomMedia(999)">1:1</button>
                 </div>
                 <div class="zoom-container" id="zoom-container">
-                    <video id="zoom-media" controls autoplay draggable="false"
+                    <video id="zoom-media" controls autoplay playsinline draggable="false"
                            style="transform-origin:0 0; cursor:grab;">
                         <source src="${src}">
                     </video>
@@ -201,6 +219,18 @@ const App = (() => {
     function openZoomableImage(title, src) {
         if (!src) {
             openModal(title, `<p style="color:var(--text-secondary)">No image source configured.</p>`);
+            return;
+        }
+
+        // On mobile: simple full-width, pinch-zoomable image
+        const isMobile = window.innerWidth <= 480;
+        if (isMobile) {
+            const html = `
+                <div style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:center;justify-content:center;">
+                    <img src="${src}" alt="${title}" style="width:100%;height:auto;border-radius:10px;">
+                </div>
+            `;
+            openModal(title, html);
             return;
         }
 
