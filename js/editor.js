@@ -1,6 +1,7 @@
 /**
  * EXPOO — Editor Module
  * Handles drawing, editing, exporting, file browsing, and server-saving of clickable regions.
+ * Supports both local server (python server.py) and GitHub Pages (via GitHub API).
  */
 const Editor = (() => {
 
@@ -13,6 +14,22 @@ const Editor = (() => {
     let cachedFiles = null; // cached file listing
     let activeFileTab = 'images';
     let hasUnsavedChanges = false;
+
+    // ─── GitHub Config ─────────────────────────────────
+    const GITHUB_OWNER = 'aayushmsra';
+    const GITHUB_REPO  = 'EXPOO';
+    const GITHUB_BRANCH = 'main';
+    const REGIONS_PATH  = 'content/regions.js';
+
+    function getGitHubToken() {
+        return localStorage.getItem('expoo_github_token') || '';
+    }
+    function setGitHubToken(token) {
+        localStorage.setItem('expoo_github_token', token);
+    }
+    function isLocalServer() {
+        return location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    }
 
     // ─── Init ──────────────────────────────────────────
     async function init() {
@@ -291,12 +308,47 @@ const Editor = (() => {
 
     // ─── File Browser ──────────────────────────────────
     async function fetchFileList() {
+        // Try local server first
+        if (isLocalServer()) {
+            try {
+                const resp = await fetch('/api/files');
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                cachedFiles = await resp.json();
+                return;
+            } catch (err) {
+                console.warn('Local API not available, trying GitHub:', err);
+            }
+        }
+
+        // Fall back to GitHub API
         try {
-            const resp = await fetch('/api/files');
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            cachedFiles = await resp.json();
+            const headers = {};
+            const token = getGitHubToken();
+            if (token) headers['Authorization'] = `token ${token}`;
+
+            const [imgResp, vidResp] = await Promise.all([
+                fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/assets/images?ref=${GITHUB_BRANCH}`, { headers }),
+                fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/assets/videos?ref=${GITHUB_BRANCH}`, { headers }),
+            ]);
+
+            const imgFiles = imgResp.ok ? await imgResp.json() : [];
+            const vidFiles = vidResp.ok ? await vidResp.json() : [];
+
+            const mapFiles = (arr, folder) => arr
+                .filter(f => f.type === 'file' && !f.name.startsWith('.'))
+                .map(f => ({
+                    name: f.name,
+                    path: `${folder}/${f.name}`,
+                    ext: '.' + f.name.split('.').pop().toLowerCase(),
+                    size: f.size
+                }));
+
+            cachedFiles = {
+                images: { folder: 'assets/images', files: mapFiles(imgFiles, 'assets/images') },
+                videos: { folder: 'assets/videos', files: mapFiles(vidFiles, 'assets/videos') },
+            };
         } catch (err) {
-            console.warn('Could not fetch file list:', err);
+            console.warn('Could not fetch file list from GitHub:', err);
             cachedFiles = null;
         }
     }
@@ -407,8 +459,16 @@ const Editor = (() => {
         return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
-    // ─── Save to Server ────────────────────────────────
+    // ─── Save to Server / GitHub ────────────────────────
     async function saveToServer() {
+        if (isLocalServer()) {
+            await saveToLocalServer();
+        } else {
+            await saveToGitHub();
+        }
+    }
+
+    async function saveToLocalServer() {
         updateStatus('Saving to server…');
         try {
             const resp = await fetch('/api/regions', {
@@ -430,6 +490,72 @@ const Editor = (() => {
             updateStatus('Save failed — check console');
             console.error('Save error:', err);
         }
+    }
+
+    async function saveToGitHub() {
+        let token = getGitHubToken();
+        if (!token) {
+            token = prompt('Enter your GitHub Personal Access Token (with repo scope) to save:');
+            if (!token) { App.toast('Save cancelled — no token provided', 'error'); return; }
+            setGitHubToken(token);
+        }
+
+        updateStatus('Saving to GitHub…');
+        try {
+            // Get current file SHA (required for updates)
+            const getResp = await fetch(
+                `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${REGIONS_PATH}?ref=${GITHUB_BRANCH}`,
+                { headers: { 'Authorization': `token ${token}` } }
+            );
+            let sha = '';
+            if (getResp.ok) {
+                const existing = await getResp.json();
+                sha = existing.sha;
+            }
+
+            // Build file content
+            const fileContent = `/**\n * EXPOO — Regions Configuration (auto-saved by editor)\n * Last saved: ${new Date().toISOString()}\n */\n\nconst REGIONS = ${JSON.stringify(regions, null, 4)};\n\nwindow.REGIONS = REGIONS;\n`;
+
+            // Commit via GitHub API
+            const putResp = await fetch(
+                `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${REGIONS_PATH}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Update regions (${regions.length} regions) via EXPOO editor`,
+                        content: btoa(unescape(encodeURIComponent(fileContent))),
+                        sha: sha || undefined,
+                        branch: GITHUB_BRANCH,
+                    }),
+                }
+            );
+
+            if (!putResp.ok) {
+                const errData = await putResp.json();
+                if (putResp.status === 401) {
+                    localStorage.removeItem('expoo_github_token');
+                    throw new Error('Invalid token — cleared. Try saving again.');
+                }
+                throw new Error(errData.message || `HTTP ${putResp.status}`);
+            }
+
+            hasUnsavedChanges = false;
+            App.toast(`Saved ${regions.length} regions to GitHub! Site will update in ~1 min.`, 'success');
+            updateStatus(`Saved ${regions.length} regions to GitHub. Live soon!`);
+        } catch (err) {
+            App.toast('GitHub save failed: ' + err.message, 'error');
+            updateStatus('Save failed — ' + err.message);
+            console.error('GitHub save error:', err);
+        }
+    }
+
+    function clearToken() {
+        localStorage.removeItem('expoo_github_token');
+        App.toast('GitHub token cleared', 'info');
     }
 
     // ─── Export / Import ───────────────────────────────
@@ -482,8 +608,9 @@ const Editor = (() => {
         switchFileTab,
         selectFile,
         refreshFiles,
-        // Server save
+        // Server / GitHub save
         saveToServer,
+        clearToken,
     };
 
 })();
