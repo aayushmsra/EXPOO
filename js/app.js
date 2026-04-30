@@ -181,38 +181,16 @@ const App = (() => {
             return;
         }
 
-        // On mobile: simple full-width video player (no zoom container)
-        const isMobile = window.innerWidth <= 480;
-        if (isMobile) {
-            const html = `
-                <video controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:10px;background:#000;">
-                    <source src="${src}">
-                </video>
-            `;
-            openModal(title, html);
-            return;
-        }
-
+        // Simple video player — no zoom container needed for video
         const html = `
-            <div class="zoom-viewer">
-                <div class="zoom-toolbar">
-                    <button class="btn btn-sm" onclick="App.zoomMedia(-20)">➖</button>
-                    <span class="zoom-level-label" id="zoom-img-label">100%</span>
-                    <button class="btn btn-sm" onclick="App.zoomMedia(20)">➕</button>
-                    <button class="btn btn-sm" onclick="App.zoomMedia(0)">Fit</button>
-                    <button class="btn btn-sm" onclick="App.zoomMedia(999)">1:1</button>
-                </div>
-                <div class="zoom-container" id="zoom-container">
-                    <video id="zoom-media" controls autoplay playsinline draggable="false"
-                           style="transform-origin:0 0; cursor:grab;">
-                        <source src="${src}">
-                    </video>
-                </div>
+            <div class="video-container">
+                <video controls autoplay playsinline style="width:100%;max-height:75vh;border-radius:10px;background:#000;">
+                    <source src="${src}">
+                    Your browser does not support video playback.
+                </video>
             </div>
         `;
-        openModal(title, html, { wide: true });
-
-        requestAnimationFrame(() => initZoomPanMedia('video'));
+        openModal(title, html);
     }
 
     // ─── Zoomable Image Viewer ─────────────────────────
