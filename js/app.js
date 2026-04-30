@@ -200,18 +200,6 @@ const App = (() => {
             return;
         }
 
-        // On mobile: simple full-width, pinch-zoomable image
-        const isMobile = window.innerWidth <= 480;
-        if (isMobile) {
-            const html = `
-                <div style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:center;justify-content:center;">
-                    <img src="${src}" alt="${title}" style="width:100%;height:auto;border-radius:10px;">
-                </div>
-            `;
-            openModal(title, html);
-            return;
-        }
-
         const html = `
             <div class="zoom-viewer">
                 <div class="zoom-toolbar">
@@ -229,7 +217,8 @@ const App = (() => {
         `;
         openModal(title, html, { wide: true });
 
-        requestAnimationFrame(() => initZoomPanMedia('image'));
+        // Delay init slightly so modal layout is complete before measuring
+        setTimeout(() => initZoomPanMedia('image'), 50);
     }
 
     // ─── Unified Zoom/Pan for Image & Video ────────────
