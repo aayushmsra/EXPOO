@@ -1,6 +1,6 @@
 /**
  * EXPOO — Regions Configuration (auto-saved by editor)
- * Last saved: 2026-05-04T09:14:52.615Z
+ * Last saved: 2026-05-04T09:33:09.601Z
  */
 
 const REGIONS = [
@@ -92,7 +92,7 @@ const REGIONS = [
         "action": {
             "type": "image",
             "title": "",
-            "src": "assets/images/UTO.png"
+            "src": "assets/images/ADR.png"
         }
     },
     {
