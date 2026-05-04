@@ -464,11 +464,11 @@ img, svg {
     transform: translate(-50%, -50%);
     width: 16px;
     height: 16px;
-    background: #00e5ff;
+    background: #FF9F1C;
     border: none;
     border-radius: 50%;
     animation: pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 12px 5px rgba(0, 229, 255, 0.7), 0 0 24px 10px rgba(0, 229, 255, 0.3);
+    box-shadow: 0 0 12px 5px rgba(255, 159, 28, 0.7), 0 0 24px 10px rgba(255, 159, 28, 0.3);
 }
 
 /* Outer expanding ring 1 */
@@ -480,7 +480,7 @@ img, svg {
     transform: translate(-50%, -50%);
     width: 16px;
     height: 16px;
-    border: 3px solid rgba(0, 229, 255, 0.8);
+    border: 3px solid rgba(255, 159, 28, 0.8);
     border-radius: 50%;
     animation: ripple 2.2s ease-out infinite;
 }
@@ -494,18 +494,18 @@ img, svg {
     transform: translate(-50%, -50%);
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(0, 229, 255, 0.6);
+    border: 2px solid rgba(255, 159, 28, 0.6);
     border-radius: 50%;
     animation: ripple 2.2s ease-out infinite 1.1s;
 }
 
 @keyframes pulse {
     0%, 100% { 
-        box-shadow: 0 0 12px 5px rgba(0, 229, 255, 0.7), 0 0 24px 10px rgba(0, 229, 255, 0.3);
+        box-shadow: 0 0 12px 5px rgba(255, 159, 28, 0.7), 0 0 24px 10px rgba(255, 159, 28, 0.3);
         transform: translate(-50%, -50%) scale(1);
     }
     50% { 
-        box-shadow: 0 0 18px 8px rgba(0, 229, 255, 0.9), 0 0 36px 16px rgba(0, 229, 255, 0.4);
+        box-shadow: 0 0 18px 8px rgba(255, 159, 28, 0.9), 0 0 36px 16px rgba(255, 159, 28, 0.4);
         transform: translate(-50%, -50%) scale(1.2);
     }
 }
