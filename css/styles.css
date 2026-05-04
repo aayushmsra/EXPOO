@@ -432,46 +432,67 @@ img, svg {
 .hotspot::after {
     content: attr(data-label);
     position: absolute;
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--accent);
-    color: #fff;
-    padding: 3px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 0.72rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #111;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .hotspot:hover {
-    background: rgba(88, 166, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .hotspot:hover::after {
     opacity: 1;
 }
 
-/* Pulse dot at center */
+/* Pulse ring at center */
 .hotspot .pulse-dot {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid rgba(0, 210, 150, 0.9);
+    width: 18px;
+    height: 18px;
+    background: transparent;
+    border: 2.5px solid rgba(255, 255, 255, 0.9);
     border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 6px rgba(0, 210, 150, 0.5);
+    animation: pulse 2.5s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Small inner dot for precision */
+.hotspot .pulse-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 5px;
+    height: 5px;
+    background: #fff;
+    border-radius: 50%;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 210, 150, 0.5), 0 0 6px rgba(0, 210, 150, 0.4); }
-    50%      { box-shadow: 0 0 0 16px rgba(0, 210, 150, 0), 0 0 6px rgba(0, 210, 150, 0.4); }
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45), 0 0 8px rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.9);
+    }
+    50% { 
+        box-shadow: 0 0 0 12px rgba(255, 255, 255, 0), 0 0 8px rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
 }
 
 /* Drawing overlay */
