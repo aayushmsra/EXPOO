@@ -1,6 +1,6 @@
 /**
  * EXPOO — Regions Configuration (auto-saved by editor)
- * Last saved: 2026-05-04T09:06:30.434Z
+ * Last saved: 2026-05-04T09:14:52.615Z
  */
 
 const REGIONS = [
@@ -132,6 +132,19 @@ const REGIONS = [
             "type": "image",
             "title": "",
             "src": "assets/images/UTO.png"
+        }
+    },
+    {
+        "id": "region-1777886047283",
+        "x": 82.34,
+        "y": 69.89,
+        "width": 10.65,
+        "height": 1.26,
+        "label": "view details",
+        "action": {
+            "type": "image",
+            "title": "",
+            "src": "assets/images/Deep Sleep.png"
         }
     }
 ];
