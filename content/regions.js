@@ -127,11 +127,11 @@ const REGIONS = [
         "y": 69.82,
         "width": 14.81,
         "height": 1.93,
-        "label": "",
+        "label": "view details",
         "action": {
-            "type": "popup",
+            "type": "image",
             "title": "",
-            "body": ""
+            "src": "assets/images/UTO.png"
         }
     }
 ];
