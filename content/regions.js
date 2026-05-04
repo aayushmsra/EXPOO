@@ -1,6 +1,6 @@
 /**
  * EXPOO — Regions Configuration (auto-saved by editor)
- * Last saved: 2026-04-30T16:24:55.192738
+ * Last saved: 2026-05-04T09:06:30.434Z
  */
 
 const REGIONS = [
@@ -92,7 +92,7 @@ const REGIONS = [
         "action": {
             "type": "image",
             "title": "",
-            "src": "assets/images/ADR.png"
+            "src": "assets/images/UTO.png"
         }
     },
     {
@@ -119,6 +119,19 @@ const REGIONS = [
             "type": "image",
             "title": "",
             "src": "assets/images/Maint.png"
+        }
+    },
+    {
+        "id": "region-1777885266654",
+        "x": 61.15,
+        "y": 69.82,
+        "width": 14.81,
+        "height": 1.93,
+        "label": "",
+        "action": {
+            "type": "popup",
+            "title": "",
+            "body": ""
         }
     }
 ];
