@@ -1,6 +1,6 @@
 /**
  * EXPOO — Regions Configuration (auto-saved by editor)
- * Last saved: 2026-05-04T09:33:09.601Z
+ * Last saved: 2026-05-06T04:52:27.141Z
  */
 
 const REGIONS = [
@@ -12,9 +12,9 @@ const REGIONS = [
         "height": 1.22,
         "label": "view details",
         "action": {
-            "type": "link",
-            "url": "https://www.mobility.siemens.com/global/en/portfolio/rail-infrastructure/mass-transit/communications-based-train-control-system.html",
-            "target": "_blank"
+            "type": "image",
+            "title": "",
+            "src": "assets/images/overview.png"
         }
     },
     {
